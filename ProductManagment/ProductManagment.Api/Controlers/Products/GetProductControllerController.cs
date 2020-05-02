@@ -55,7 +55,7 @@ namespace ProductManagment.Api.Controlers.Products
 
             public async Task<ProductDto> Handle(GetProductQuery request, CancellationToken cancellationToken)
             {
-                var product = await _dataContext.Products.FirstOrDefaultAsync(p => p.Id == request.Id);
+                var product = await _dataContext.Products.FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
                 if(product == null)
                 {
