@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
+using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
@@ -25,8 +26,8 @@ namespace ProductManagment.Api.Controlers.Categories
         [HttpGet]
         public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken = default)
         {
-            var categories = await _mediator.Send(new GetAllActiveCategoriesQuery(), cancellationToken);
-            return Ok(categories);
+            var result = await _mediator.Send(new GetAllActiveCategoriesQuery(), cancellationToken);
+            return Ok(result.Value);
         }
 
         public class CategoryDto
@@ -35,12 +36,12 @@ namespace ProductManagment.Api.Controlers.Categories
             public string Name { get; set; }
         }
 
-        public class GetAllActiveCategoriesQuery : IRequest<IEnumerable<CategoryDto>>
+        public class GetAllActiveCategoriesQuery : IRequest<Result<IEnumerable<CategoryDto>>>
         {
 
         }
 
-        public class GetAllActiveCategoriesQueryHandler : IRequestHandler<GetAllActiveCategoriesQuery, IEnumerable<CategoryDto>>
+        public class GetAllActiveCategoriesQueryHandler : IRequestHandler<GetAllActiveCategoriesQuery, Result<IEnumerable<CategoryDto>>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper;
@@ -52,13 +53,13 @@ namespace ProductManagment.Api.Controlers.Categories
                 _mapper = mapper;
             }
 
-            public async Task<IEnumerable<CategoryDto>> Handle(GetAllActiveCategoriesQuery request, CancellationToken cancellationToken)
+            public async Task<Result<IEnumerable<CategoryDto>>> Handle(GetAllActiveCategoriesQuery request, CancellationToken cancellationToken)
             {
-                var categories = await _dataContext.Categories.Where(p => p.IsActive).ToListAsync(cancellationToken);
+                var categories =  _dataContext.Categories.Where(p => p.IsActive);
 
-                var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+                var categoryDtos = await _mapper.ProjectTo<CategoryDto>(categories).ToListAsync(cancellationToken);
 
-                return categoryDtos;
+                return Result.Ok(categoryDtos.AsEnumerable());
             }
         }
 
