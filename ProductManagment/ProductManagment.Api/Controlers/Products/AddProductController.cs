@@ -21,26 +21,22 @@ namespace ProductManagment.Api.Controlers.Products
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ProductDto productDto, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Post([FromBody] InsertUserCommand command, CancellationToken cancellationToken = default)
         {
-            var product = await _mediator.Send(new InsertUserCommand { ProductDto = productDto });
+            var product = await _mediator.Send(command, cancellationToken);
             return CreatedAtAction(nameof(Post), product);
         }
 
-        public class ProductDto
+        public class InsertUserCommand : IRequest<int>
         {
+            public int Id { get; set; }
             public string Name { get; set; }
             public string Description { get; set; }
             public decimal Price { get; set; }
             public int CategoryId { get; set; }
         }
 
-        public class InsertUserCommand : IRequest<ProductDto>
-        {
-            public ProductDto ProductDto { get; set; }
-        }
-
-        public class InsertUserCommandHandler : IRequestHandler<InsertUserCommand, ProductDto>
+        public class InsertUserCommandHandler : IRequestHandler<InsertUserCommand, int>
         {
             private readonly DataContext _dataContext;
             private readonly IMediator _mediator;
@@ -55,15 +51,14 @@ namespace ProductManagment.Api.Controlers.Products
                 _mapper = mapper;
             }
 
-            public async Task<ProductDto> Handle(InsertUserCommand request, CancellationToken cancellationToken)
+            public async Task<int> Handle(InsertUserCommand request, CancellationToken cancellationToken)
             {
-                var product = _mapper.Map<Product>(request.ProductDto);
+                var product = _mapper.Map<Product>(request);
 
                 await _dataContext.Products.AddAsync(product, cancellationToken);
                 await _dataContext.SaveChangesAsync(cancellationToken);
 
-                var productDto = _mapper.Map<ProductDto>(product);
-                return productDto;
+                return product.Id;
             }
         }
 
@@ -71,7 +66,7 @@ namespace ProductManagment.Api.Controlers.Products
         {
             public ProductProfile()
             {
-                CreateMap<Product, ProductDto>()
+                CreateMap<Product, InsertUserCommand>()
                     .ReverseMap();
             }
         }
