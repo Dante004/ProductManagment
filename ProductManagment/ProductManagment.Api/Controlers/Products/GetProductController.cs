@@ -15,15 +15,15 @@ namespace ProductManagment.Api.Controlers.Products
     {
         private readonly IMediator _mediator;
 
-        public GetProductController(IMediator mediator)
+        public GetProductControllerController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Get(GetProductQuery query, CancellationToken cancellationToken = default)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id, CancellationToken cancellationToken = default)
         {
-            var productDto = await _mediator.Send(query, cancellationToken);
+            var productDto = await _mediator.Send(new GetProductQuery { Id = id }, cancellationToken);
             return Ok(productDto);
         }
 

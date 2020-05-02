@@ -20,10 +20,10 @@ namespace ProductManagment.Api.Controlers.Categories
             _mediator = mediator;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Get(GetCategoryQuery query, CancellationToken cancellationToken = default)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id, CancellationToken cancellationToken = default)
         {
-            var categoryDto = await _mediator.Send(query, cancellationToken);
+            var categoryDto = await _mediator.Send(new GetCategoryQuery { Id = id}, cancellationToken);
             return Ok(categoryDto);
         }
 
