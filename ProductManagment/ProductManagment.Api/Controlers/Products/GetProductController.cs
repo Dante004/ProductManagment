@@ -15,7 +15,7 @@ namespace ProductManagment.Api.Controlers.Products
     {
         private readonly IMediator _mediator;
 
-        public GetProductControllerController(IMediator mediator)
+        public GetProductController(IMediator mediator)
         {
             _mediator = mediator;
         }
