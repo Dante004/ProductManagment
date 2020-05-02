@@ -22,6 +22,13 @@ namespace ProductManagment.Api.Controlers.Products
             _mediator = mediator;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken = default)
+        {
+            var products = await _mediator.Send(new GetAllActiveProductsQuery(), cancellationToken);
+            return Ok(products);
+        }
+
         public class ProductDto
         {
             public int Id { get; set; }
