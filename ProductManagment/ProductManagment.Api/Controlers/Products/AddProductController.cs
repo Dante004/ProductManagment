@@ -11,11 +11,11 @@ namespace ProductManagment.Api.Controlers.Products
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AddCategoryController : ControllerBase
+    public class AddProductController : ControllerBase
     {
         private IMediator _mediator;
 
-        public AddCategoryController(IMediator mediator)
+        public AddProductController(IMediator mediator)
         {
             _mediator = mediator;
         }
@@ -41,11 +41,9 @@ namespace ProductManagment.Api.Controlers.Products
             private readonly IMapper _mapper;
 
             public InsertProductCommandHandler(DataContext dataContext,
-                IMediator mediator,
                 IMapper mapper)
             {
                 _dataContext = dataContext;
-                _mediator = mediator;
                 _mapper = mapper;
             }
 
