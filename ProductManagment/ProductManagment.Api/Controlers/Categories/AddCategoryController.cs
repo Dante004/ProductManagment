@@ -5,6 +5,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagment.Api.DataAccess;
+using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
@@ -23,35 +24,52 @@ namespace ProductManagment.Api.Controlers.Categories
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] InsertCategoryCommand command, CancellationToken cancellationToken = default)
         {
-            var category = await _mediator.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(Post), category);
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if(!result.Success)
+            {
+                result.AddErrorToModelState(ModelState);
+                return BadRequest(ModelState);
+            }
+
+            return CreatedAtAction(nameof(Post), result.Value);
         }
 
-        public class InsertCategoryCommand : IRequest<int>
+        public class InsertCategoryCommand : IRequest<Result<int>>
         {
             public string Name { get; set; }
         }
 
-        public class InsertCategoryCommandHandler : IRequestHandler<InsertCategoryCommand, int>
+        public class InsertCategoryCommandHandler : IRequestHandler<InsertCategoryCommand, Result<int>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper;
+            private readonly IValidator<Category> _validator;
 
             public InsertCategoryCommandHandler(DataContext dataContext,
-                IMapper mapper)
+                IMapper mapper,
+                IValidator<Category> validator)
             {
                 _dataContext = dataContext;
                 _mapper = mapper;
+                _validator = validator;
             }
 
-            public async Task<int> Handle(InsertCategoryCommand request, CancellationToken cancellationToken)
+            public async Task<Result<int>> Handle(InsertCategoryCommand request, CancellationToken cancellationToken)
             {
                 var category = _mapper.Map<Category>(request);
+
+                var result = await _validator.ValidateAsync(category, cancellationToken);
+
+                if(!result.IsValid)
+                {
+                    return Result.Error<int>(result.Errors);
+                }
 
                 await _dataContext.Categories.AddAsync(category, cancellationToken);
                 await _dataContext.SaveChangesAsync(cancellationToken);
 
-                return category.Id;
+                return Result.Ok(category.Id);
             }
         }
 
