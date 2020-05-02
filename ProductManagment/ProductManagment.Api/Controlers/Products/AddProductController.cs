@@ -38,7 +38,6 @@ namespace ProductManagment.Api.Controlers.Products
         public class InsertProductCommandHandler : IRequestHandler<InsertProductCommand, int>
         {
             private readonly DataContext _dataContext;
-            private readonly IMediator _mediator;
             private readonly IMapper _mapper;
 
             public InsertProductCommandHandler(DataContext dataContext,
