@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
+using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
@@ -23,8 +24,15 @@ namespace ProductManagment.Api.Controlers.Categories
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id, CancellationToken cancellationToken = default)
         {
-            var categoryDto = await _mediator.Send(new GetCategoryQuery { Id = id}, cancellationToken);
-            return Ok(categoryDto);
+            var result = await _mediator.Send(new GetCategoryQuery { Id = id}, cancellationToken);
+
+            if(!result.Success)
+            {
+                result.AddErrorToModelState(ModelState);
+                return BadRequest(ModelState);
+            }
+
+            return Ok(result);
         }
 
         public class CategoryDto
@@ -33,12 +41,12 @@ namespace ProductManagment.Api.Controlers.Categories
             public string Name { get; set; }
         }
 
-        public class GetCategoryQuery : IRequest<CategoryDto>
+        public class GetCategoryQuery : IRequest<Result<CategoryDto>>
         {
             public int Id { get; set; }
         }
 
-        public class GetCategoryQueryHandler : IRequestHandler<GetCategoryQuery, CategoryDto>
+        public class GetCategoryQueryHandler : IRequestHandler<GetCategoryQuery, Result<CategoryDto>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper; 
@@ -50,17 +58,17 @@ namespace ProductManagment.Api.Controlers.Categories
                 _mapper = mapper;
             }
 
-            public async Task<CategoryDto> Handle(GetCategoryQuery request, CancellationToken cancellationToken)
+            public async Task<Result<CategoryDto>> Handle(GetCategoryQuery request, CancellationToken cancellationToken)
             {
                 var category = await _dataContext.Categories.FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
                 if(category == null)
                 {
-                    return null;
+                    return Result.Error<CategoryDto>("Category with that id doesn't exist");
                 }
 
                 var productDto = _mapper.Map<CategoryDto>(category);
-                return productDto;
+                return Result.Ok(productDto);
             }
 
             public class CategoryProfile : Profile
