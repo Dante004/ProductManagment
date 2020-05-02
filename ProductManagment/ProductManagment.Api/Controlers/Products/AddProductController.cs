@@ -11,38 +11,37 @@ namespace ProductManagment.Api.Controlers.Products
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AddProductController : ControllerBase
+    public class AddCategoryController : ControllerBase
     {
         private IMediator _mediator;
 
-        public AddProductController(IMediator mediator)
+        public AddCategoryController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] InsertUserCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Post([FromBody] InsertProductCommand command, CancellationToken cancellationToken = default)
         {
             var product = await _mediator.Send(command, cancellationToken);
             return CreatedAtAction(nameof(Post), product);
         }
 
-        public class InsertUserCommand : IRequest<int>
+        public class InsertProductCommand : IRequest<int>
         {
-            public int Id { get; set; }
             public string Name { get; set; }
             public string Description { get; set; }
             public decimal Price { get; set; }
             public int CategoryId { get; set; }
         }
 
-        public class InsertUserCommandHandler : IRequestHandler<InsertUserCommand, int>
+        public class InsertProductCommandHandler : IRequestHandler<InsertProductCommand, int>
         {
             private readonly DataContext _dataContext;
             private readonly IMediator _mediator;
             private readonly IMapper _mapper;
 
-            public InsertUserCommandHandler(DataContext dataContext,
+            public InsertProductCommandHandler(DataContext dataContext,
                 IMediator mediator,
                 IMapper mapper)
             {
@@ -51,7 +50,7 @@ namespace ProductManagment.Api.Controlers.Products
                 _mapper = mapper;
             }
 
-            public async Task<int> Handle(InsertUserCommand request, CancellationToken cancellationToken)
+            public async Task<int> Handle(InsertProductCommand request, CancellationToken cancellationToken)
             {
                 var product = _mapper.Map<Product>(request);
 
@@ -66,7 +65,7 @@ namespace ProductManagment.Api.Controlers.Products
         {
             public ProductProfile()
             {
-                CreateMap<Product, InsertUserCommand>()
+                CreateMap<Product, InsertProductCommand>()
                     .ReverseMap();
             }
         }
