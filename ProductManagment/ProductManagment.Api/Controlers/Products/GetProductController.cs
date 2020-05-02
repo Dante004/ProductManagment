@@ -11,11 +11,11 @@ namespace ProductManagment.Api.Controlers.Products
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GetProductControllerController : ControllerBase
+    public class GetProductController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public GetProductControllerController(IMediator mediator)
+        public GetProductController(IMediator mediator)
         {
             _mediator = mediator;
         }
