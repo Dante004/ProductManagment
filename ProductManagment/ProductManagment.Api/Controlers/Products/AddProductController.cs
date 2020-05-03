@@ -24,8 +24,15 @@ namespace ProductManagment.Api.Controlers.Products
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] InsertProductCommand command, CancellationToken cancellationToken = default)
         {
-            var product = await _mediator.Send(command, cancellationToken);
-            return CreatedAtAction(nameof(Post), product);
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if(!result.Success)
+            {
+                result.AddErrorToModelState(ModelState);
+                return BadRequest(ModelState);
+            }
+
+            return CreatedAtAction(nameof(Post), result.Value);
         }
 
         public class InsertProductCommand : IRequest<Result<int>>
