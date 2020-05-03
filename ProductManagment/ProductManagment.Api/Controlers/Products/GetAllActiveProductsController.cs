@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
+using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Products
@@ -25,8 +26,8 @@ namespace ProductManagment.Api.Controlers.Products
         [HttpGet]
         public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken = default)
         {
-            var products = await _mediator.Send(new GetAllActiveProductsQuery(), cancellationToken);
-            return Ok(products);
+            var result = await _mediator.Send(new GetAllActiveProductsQuery(), cancellationToken);
+            return Ok(result.Value);
         }
 
         public class ProductDto
@@ -38,12 +39,12 @@ namespace ProductManagment.Api.Controlers.Products
             public int CategoryId { get; set; }
         }
 
-        public class GetAllActiveProductsQuery : IRequest<IEnumerable<ProductDto>>
+        public class GetAllActiveProductsQuery : IRequest<Result<IEnumerable<ProductDto>>>
         {
 
         }
 
-        public class GetAllActiveProductsQueryHandler : IRequestHandler<GetAllActiveProductsQuery, IEnumerable<ProductDto>>
+        public class GetAllActiveProductsQueryHandler : IRequestHandler<GetAllActiveProductsQuery, Result<IEnumerable<ProductDto>>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper;
@@ -55,13 +56,13 @@ namespace ProductManagment.Api.Controlers.Products
                 _mapper = mapper;
             }
 
-            public async Task<IEnumerable<ProductDto>> Handle(GetAllActiveProductsQuery request, CancellationToken cancellationToken)
+            public async Task<Result<IEnumerable<ProductDto>>> Handle(GetAllActiveProductsQuery request, CancellationToken cancellationToken)
             {
-                var products = await _dataContext.Products.Where(p => p.IsActive).ToListAsync(cancellationToken);
+                var products =  _dataContext.Products.Where(p => p.IsActive);
 
-                var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+                var productDtos = await _mapper.ProjectTo<ProductDto>(products).ToListAsync(cancellationToken);
 
-                return productDtos;
+                return Result.Ok(productDtos.AsEnumerable());
             }
         }
 
