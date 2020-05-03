@@ -5,6 +5,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagment.Api.DataAccess;
+using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Products
@@ -27,7 +28,7 @@ namespace ProductManagment.Api.Controlers.Products
             return CreatedAtAction(nameof(Post), product);
         }
 
-        public class InsertProductCommand : IRequest<int>
+        public class InsertProductCommand : IRequest<Result<int>>
         {
             public string Name { get; set; }
             public string Description { get; set; }
@@ -35,26 +36,36 @@ namespace ProductManagment.Api.Controlers.Products
             public int CategoryId { get; set; }
         }
 
-        public class InsertProductCommandHandler : IRequestHandler<InsertProductCommand, int>
+        public class InsertProductCommandHandler : IRequestHandler<InsertProductCommand, Result<int>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper;
+            private readonly IValidator<Product> _validator;
 
             public InsertProductCommandHandler(DataContext dataContext,
-                IMapper mapper)
+                IMapper mapper,
+                IValidator<Product> validator)
             {
                 _dataContext = dataContext;
                 _mapper = mapper;
+                _validator = validator;
             }
 
-            public async Task<int> Handle(InsertProductCommand request, CancellationToken cancellationToken)
+            public async Task<Result<int>> Handle(InsertProductCommand request, CancellationToken cancellationToken)
             {
                 var product = _mapper.Map<Product>(request);
+
+                var result = _validator.Validate(product);
+
+                if(!result.IsValid)
+                {
+                    return Result.Error<int>(result.Errors);
+                }
 
                 await _dataContext.Products.AddAsync(product, cancellationToken);
                 await _dataContext.SaveChangesAsync(cancellationToken);
 
-                return product.Id;
+                return Result.Ok(product.Id);
             }
         }
 
@@ -85,7 +96,7 @@ namespace ProductManagment.Api.Controlers.Products
                     .ScalePrecision(2, 5)
                     .GreaterThanOrEqualTo(0);
 
-                RuleFor(p => p.Category)
+                RuleFor(p => p.CategoryId)
                     .NotNull();
             }
         }
