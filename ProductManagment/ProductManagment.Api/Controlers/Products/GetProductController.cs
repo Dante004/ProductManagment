@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
+using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Products
@@ -23,8 +24,15 @@ namespace ProductManagment.Api.Controlers.Products
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id, CancellationToken cancellationToken = default)
         {
-            var productDto = await _mediator.Send(new GetProductQuery { Id = id }, cancellationToken);
-            return Ok(productDto);
+            var result = await _mediator.Send(new GetProductQuery { Id = id }, cancellationToken);
+
+            if(!result.Success)
+            {
+                result.AddErrorToModelState(ModelState);
+                return BadRequest(ModelState);
+            }
+
+            return Ok(result.Value);
         }
 
         public class ProductDto
@@ -36,12 +44,12 @@ namespace ProductManagment.Api.Controlers.Products
             public int CategoryId { get; set; }
         }
 
-        public class GetProductQuery : IRequest<ProductDto>
+        public class GetProductQuery : IRequest<Result<ProductDto>>
         {
             public int Id { get; set; }
         }
 
-        public class GetProductQueryHandler : IRequestHandler<GetProductQuery, ProductDto>
+        public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<ProductDto>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper; 
@@ -53,17 +61,17 @@ namespace ProductManagment.Api.Controlers.Products
                 _mapper = mapper;
             }
 
-            public async Task<ProductDto> Handle(GetProductQuery request, CancellationToken cancellationToken)
+            public async Task<Result<ProductDto>> Handle(GetProductQuery request, CancellationToken cancellationToken)
             {
                 var product = await _dataContext.Products.FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
 
                 if(product == null)
                 {
-                    return null;
+                    return Result.Error<ProductDto>("Product with that id doesn't exist");
                 }
 
                 var productDto = _mapper.Map<ProductDto>(product);
-                return productDto;
+                return Result.Ok(productDto);
             }
 
             public class ProductProfile : Profile
