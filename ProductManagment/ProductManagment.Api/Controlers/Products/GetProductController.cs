@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
 using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
+using ProductManagment.Api.Properties;
 
 namespace ProductManagment.Api.Controlers.Products
 {
@@ -67,7 +68,7 @@ namespace ProductManagment.Api.Controlers.Products
 
                 if(product == null)
                 {
-                    return Result.Error<ProductDto>("Product with that id doesn't exist");
+                    return Result.Error<ProductDto>(Resource.ProductIdDosentExist);
                 }
 
                 var productDto = _mapper.Map<ProductDto>(product);

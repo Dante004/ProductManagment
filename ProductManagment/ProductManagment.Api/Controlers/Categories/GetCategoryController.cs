@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
 using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
+using ProductManagment.Api.Properties;
 
 namespace ProductManagment.Api.Controlers.Categories
 {
@@ -64,7 +65,7 @@ namespace ProductManagment.Api.Controlers.Categories
 
                 if(category == null)
                 {
-                    return Result.Error<CategoryDto>("Category with that id doesn't exist");
+                    return Result.Error<CategoryDto>(Resource.CategoryIdDosentExist);
                 }
 
                 var productDto = _mapper.Map<CategoryDto>(category);
