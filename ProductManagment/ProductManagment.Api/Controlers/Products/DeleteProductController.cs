@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
+using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Products
@@ -22,16 +23,16 @@ namespace ProductManagment.Api.Controlers.Products
         [HttpDelete]
         public async Task<IActionResult> Delete(DeleteProductCommand command, CancellationToken cancellationToken = default)
         {
-            var id = await _mediator.Send(command, cancellationToken);
-            return Ok(id);
+            var result = await _mediator.Send(command, cancellationToken);
+            return Ok(result.Value);
         }
 
-        public class DeleteProductCommand : IRequest<int>
+        public class DeleteProductCommand : IRequest<Result<int>>
         {
             public int Id { get; set; }
         }
 
-        public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand, int>
+        public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand, Result<int>>
         {
             private readonly DataContext _dataContext;
 
@@ -40,7 +41,7 @@ namespace ProductManagment.Api.Controlers.Products
                 _dataContext = dataContext;
             }
 
-            public async Task<int> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+            public async Task<Result<int>> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
             {
                 var product = new Product
                 {
@@ -51,7 +52,7 @@ namespace ProductManagment.Api.Controlers.Products
 
                 await _dataContext.SaveChangesAsync(cancellationToken);
 
-                return request.Id;
+                return Result.Ok(request.Id);
             }
         }
     }
