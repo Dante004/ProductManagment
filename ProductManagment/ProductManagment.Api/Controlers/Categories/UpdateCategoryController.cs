@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagment.Api.DataAccess;
+using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
@@ -25,26 +27,36 @@ namespace ProductManagment.Api.Controlers.Categories
         [HttpPut]
         public async Task<IActionResult> Put(UpdateCategoryCommand command, CancellationToken cancellationToken = default)
         {
-            var id = await _mediator.Send(command, cancellationToken);
-            return Ok(id);
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if(!result.Success)
+            {
+                result.AddErrorToModelState(ModelState);
+                return BadRequest(ModelState);
+            }
+
+            return Ok(result.Value);
         }
 
-        public class UpdateCategoryCommand : IRequest<int>
+        public class UpdateCategoryCommand : IRequest<Result<int>>
         {
             public int Id { get; set; }
             public string Name { get; set; }
         }
 
-        public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, int>
+        public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result<int>>
         {
-            private DataContext _dataContext;
+            private readonly DataContext _dataContext;
+            private readonly IValidator<Category> _validator;
 
-            public UpdateCategoryCommandHandler(DataContext dataContext)
+            public UpdateCategoryCommandHandler(DataContext dataContext,
+                IValidator<Category> validator)
             {
                 _dataContext = dataContext;
+                _validator = validator;
             }
 
-            public async Task<int> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+            public async Task<Result<int>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
             {
                 var category = new Category
                 {
@@ -55,9 +67,27 @@ namespace ProductManagment.Api.Controlers.Categories
 
                 category.Name = request.Name;
 
+                var result = await _validator.ValidateAsync(category, cancellationToken);
+
+                if(!result.IsValid)
+                {
+                    return Result.Error<int>(result.Errors);
+                }
+
                 await _dataContext.SaveChangesAsync(cancellationToken);
 
-                return request.Id;
+                return Result.Ok(request.Id);
+            }
+        }
+
+        public class CategoryValidtaor : AbstractValidator<Category>
+        {
+            public CategoryValidtaor()
+            {
+                RuleFor(p => p.Name)
+                    .Cascade(CascadeMode.StopOnFirstFailure)
+                    .NotEmpty()
+                    .Length(3, 25);
             }
         }
     }
