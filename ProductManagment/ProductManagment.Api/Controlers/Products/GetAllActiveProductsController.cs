@@ -27,7 +27,7 @@ namespace ProductManagment.Api.Controlers.Products
         public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(new GetAllActiveProductsQuery(), cancellationToken);
-            return Ok(result.Value);
+            return result.Process(ModelState);
         }
 
         public class ProductDto

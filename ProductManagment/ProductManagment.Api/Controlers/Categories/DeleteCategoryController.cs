@@ -24,7 +24,7 @@ namespace ProductManagment.Api.Controlers.Categories
         public async Task<IActionResult> Delete(DeleteCategoryCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
-            return Ok(result.Value);
+            return result.Process(ModelState);
         }
 
         public class DeleteCategoryCommand : IRequest<Result<int>>

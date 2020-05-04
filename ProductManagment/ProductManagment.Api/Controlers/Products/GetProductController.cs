@@ -26,14 +26,7 @@ namespace ProductManagment.Api.Controlers.Products
         public async Task<IActionResult> Get(int id, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(new GetProductQuery { Id = id }, cancellationToken);
-
-            if(!result.Success)
-            {
-                result.AddErrorToModelState(ModelState);
-                return BadRequest(ModelState);
-            }
-
-            return Ok(result.Value);
+            return result.Process(ModelState);
         }
 
         public class ProductDto

@@ -24,7 +24,7 @@ namespace ProductManagment.Api.Controlers.Products
         public async Task<IActionResult> Delete(DeleteProductCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
-            return Ok(result.Value);
+            return result.Process(ModelState);
         }
 
         public class DeleteProductCommand : IRequest<Result<int>>

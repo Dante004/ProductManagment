@@ -27,7 +27,7 @@ namespace ProductManagment.Api.Controlers.Categories
         public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(new GetAllActiveCategoriesQuery(), cancellationToken);
-            return Ok(result.Value);
+            return result.Process(ModelState);
         }
 
         public class CategoryDto
