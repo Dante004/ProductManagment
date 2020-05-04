@@ -12,7 +12,7 @@ using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Products
 {
-    [Route("api/[controller]")]
+    [Route("api/product")]
     [ApiController]
     public class GetAllActiveProductsController : ControllerBase
     {

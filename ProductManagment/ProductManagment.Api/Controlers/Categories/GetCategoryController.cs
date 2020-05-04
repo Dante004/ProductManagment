@@ -11,7 +11,7 @@ using ProductManagment.Api.Properties;
 
 namespace ProductManagment.Api.Controlers.Categories
 {
-    [Route("api/[controller]")]
+    [Route("api/category")]
     [ApiController]
     public class GetCategoryController : ControllerBase
     {

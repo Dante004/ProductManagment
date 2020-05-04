@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagment.Api.DataAccess;
 using ProductManagment.Api.Helpers;
@@ -13,7 +9,7 @@ using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
 {
-    [Route("api/[controller]")]
+    [Route("api/category")]
     [ApiController]
     public class UpdateCategoryController : ControllerBase
     {

@@ -10,7 +10,7 @@ using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
 {
-    [Route("api/[controller]")]
+    [Route("api/category")]
     [ApiController]
     public class AddCategoryController : ControllerBase
     {
