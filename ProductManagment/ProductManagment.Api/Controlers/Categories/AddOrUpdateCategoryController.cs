@@ -12,11 +12,11 @@ namespace ProductManagment.Api.Controlers.Categories
 {
     [Route("api/category")]
     [ApiController]
-    public class AddCategoryController : ControllerBase
+    public class AddOrUpdateCategoryController : ControllerBase
     {
         private IMediator _mediator;
 
-        public AddCategoryController(IMediator mediator)
+        public AddOrUpdateCategoryController(IMediator mediator)
         {
             _mediator = mediator;
         }
@@ -33,6 +33,20 @@ namespace ProductManagment.Api.Controlers.Categories
             }
 
             return CreatedAtAction(nameof(Post), result.Value);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Put(UpdateCategoryCommand command, CancellationToken cancellationToken = default)
+        {
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if (!result.Success)
+            {
+                result.AddErrorToModelState(ModelState);
+                return BadRequest(ModelState);
+            }
+
+            return Ok(result.Value);
         }
 
         public class InsertCategoryCommand : IRequest<Result<int>>
@@ -70,6 +84,48 @@ namespace ProductManagment.Api.Controlers.Categories
                 await _dataContext.SaveChangesAsync(cancellationToken);
 
                 return Result.Ok(category.Id);
+            }
+        }
+
+        public class UpdateCategoryCommand : IRequest<Result<int>>
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result<int>>
+        {
+            private readonly DataContext _dataContext;
+            private readonly IValidator<Category> _validator;
+
+            public UpdateCategoryCommandHandler(DataContext dataContext,
+                IValidator<Category> validator)
+            {
+                _dataContext = dataContext;
+                _validator = validator;
+            }
+
+            public async Task<Result<int>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+            {
+                var category = new Category
+                {
+                    Id = request.Id
+                };
+
+                _dataContext.Categories.Attach(category);
+
+                category.Name = request.Name;
+
+                var result = await _validator.ValidateAsync(category, cancellationToken);
+
+                if (!result.IsValid)
+                {
+                    return Result.Error<int>(result.Errors);
+                }
+
+                await _dataContext.SaveChangesAsync(cancellationToken);
+
+                return Result.Ok(request.Id);
             }
         }
 

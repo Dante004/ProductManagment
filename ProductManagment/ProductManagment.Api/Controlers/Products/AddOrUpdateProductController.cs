@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagment.Api.DataAccess;
 using ProductManagment.Api.Helpers;
@@ -15,17 +12,17 @@ namespace ProductManagment.Api.Controlers.Products
 {
     [Route("api/product")]
     [ApiController]
-    public class UpdateProductController : ControllerBase
+    public class AddOrUpdateProductController : ControllerBase
     {
-        private readonly IMediator _mediator;
+        private IMediator _mediator;
 
-        public UpdateProductController(IMediator mediator)
+        public AddOrUpdateProductController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Put(UpdateProductCommand command, CancellationToken cancellationToken = default)
+        [HttpPost]
+        public async Task<IActionResult> Post([FromBody] InsertProductCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
 
@@ -35,7 +32,62 @@ namespace ProductManagment.Api.Controlers.Products
                 return BadRequest(ModelState);
             }
 
+            return CreatedAtAction(nameof(Post), result.Value);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Put(UpdateProductCommand command, CancellationToken cancellationToken = default)
+        {
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if (!result.Success)
+            {
+                result.AddErrorToModelState(ModelState);
+                return BadRequest(ModelState);
+            }
+
             return Ok(result);
+        }
+
+        public class InsertProductCommand : IRequest<Result<int>>
+        {
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public decimal Price { get; set; }
+            public int CategoryId { get; set; }
+        }
+
+        public class InsertProductCommandHandler : IRequestHandler<InsertProductCommand, Result<int>>
+        {
+            private readonly DataContext _dataContext;
+            private readonly IMapper _mapper;
+            private readonly IValidator<Product> _validator;
+
+            public InsertProductCommandHandler(DataContext dataContext,
+                IMapper mapper,
+                IValidator<Product> validator)
+            {
+                _dataContext = dataContext;
+                _mapper = mapper;
+                _validator = validator;
+            }
+
+            public async Task<Result<int>> Handle(InsertProductCommand request, CancellationToken cancellationToken)
+            {
+                var product = _mapper.Map<Product>(request);
+
+                var result = _validator.Validate(product);
+
+                if(!result.IsValid)
+                {
+                    return Result.Error<int>(result.Errors);
+                }
+
+                await _dataContext.Products.AddAsync(product, cancellationToken);
+                await _dataContext.SaveChangesAsync(cancellationToken);
+
+                return Result.Ok(product.Id);
+            }
         }
 
         public class UpdateProductCommand : IRequest<Result<int>>
@@ -75,7 +127,7 @@ namespace ProductManagment.Api.Controlers.Products
 
                 var result = await _validator.ValidateAsync(product, cancellationToken);
 
-                if(!result.IsValid)
+                if (!result.IsValid)
                 {
                     return Result.Error<int>(result.Errors);
                 }
@@ -83,6 +135,15 @@ namespace ProductManagment.Api.Controlers.Products
                 await _dataContext.SaveChangesAsync(cancellationToken);
 
                 return Result.Ok(request.Id);
+            }
+        }
+
+        public class ProductProfile : Profile
+        {
+            public ProductProfile()
+            {
+                CreateMap<Product, InsertProductCommand>()
+                    .ReverseMap();
             }
         }
 
