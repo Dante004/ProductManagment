@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,8 @@ namespace ProductManagment.Api.Controlers.Categories
 
         public class GetAllActiveCategoriesQuery : IRequest<Result<IEnumerable<CategoryDto>>>
         {
-
+            public int PageNumber { get; set; }
+            public int PageSize { get; set; }
         }
 
         public class GetAllActiveCategoriesQueryHandler : IRequestHandler<GetAllActiveCategoriesQuery, Result<IEnumerable<CategoryDto>>>
@@ -55,9 +57,10 @@ namespace ProductManagment.Api.Controlers.Categories
 
             public async Task<Result<IEnumerable<CategoryDto>>> Handle(GetAllActiveCategoriesQuery request, CancellationToken cancellationToken)
             {
-                var categories =  _dataContext.Categories.Where(p => p.IsActive);
-
-                var categoryDtos = await _mapper.ProjectTo<CategoryDto>(categories).ToListAsync(cancellationToken);
+                var categoryDtos = await PagedList<CategoryDto>.ToPagedList(_mapper.ProjectTo<CategoryDto>(_dataContext.Categories.Where(p => p.IsActive)),
+                    request.PageNumber,
+                    request.PageSize,
+                    cancellationToken);
 
                 return Result.Ok(categoryDtos.AsEnumerable());
             }
@@ -71,5 +74,7 @@ namespace ProductManagment.Api.Controlers.Categories
                     .ReverseMap();
             }
         }
+
+        
     }
 }

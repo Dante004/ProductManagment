@@ -41,7 +41,8 @@ namespace ProductManagment.Api.Controlers.Products
 
         public class GetAllActiveProductsQuery : IRequest<Result<IEnumerable<ProductDto>>>
         {
-
+            public int PageNumber { get; set; }
+            public int PageSize { get; set; }
         }
 
         public class GetAllActiveProductsQueryHandler : IRequestHandler<GetAllActiveProductsQuery, Result<IEnumerable<ProductDto>>>
@@ -58,9 +59,10 @@ namespace ProductManagment.Api.Controlers.Products
 
             public async Task<Result<IEnumerable<ProductDto>>> Handle(GetAllActiveProductsQuery request, CancellationToken cancellationToken)
             {
-                var products =  _dataContext.Products.Where(p => p.IsActive);
-
-                var productDtos = await _mapper.ProjectTo<ProductDto>(products).ToListAsync(cancellationToken);
+                var productDtos = await PagedList<ProductDto>.ToPagedList(_mapper.ProjectTo<ProductDto>(_dataContext.Products.Where(p => p.IsActive)),
+                        request.PageNumber,
+                        request.PageSize,
+                        cancellationToken);
 
                 return Result.Ok(productDtos.AsEnumerable());
             }
