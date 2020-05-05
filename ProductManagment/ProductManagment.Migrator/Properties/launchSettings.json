@@ -5,7 +5,10 @@
       "commandLineArgs": "-c Server=db;Database=ProductManagment;User=sa;Password=Legoswtcs1!;"
     },
     "Docker": {
-      "commandName": "Docker"
+      "commandName": "Docker",
+      "environmentVariables": {
+        "DbConnection": "Server=db;Database=ProductManagment;User=sa;Password=Legoswtcs1!;"
+      }
     }
   }
 }

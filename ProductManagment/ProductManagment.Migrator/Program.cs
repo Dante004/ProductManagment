@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
+using System;
 
 namespace ProductManagment.Migrator
 {
@@ -9,17 +10,14 @@ namespace ProductManagment.Migrator
 
         static void Main(string[] args)
         {
-            var result = Parser.Default.ParseArguments<Options>(args);
-
-            result
-                .WithParsed(r => Migrate(r));
+            Migrate(Environment.GetEnvironmentVariable("DbConnection"));
         }
 
-        private static void Migrate(Options options)
+        private static void Migrate(string value)
         {
             var config = new DbContextOptionsBuilder<DataContext>();
             config
-                .UseSqlServer(options.ConnectionString);
+                .UseSqlServer(value);
 
             using (var context = new DataContext(config.Options))
             {

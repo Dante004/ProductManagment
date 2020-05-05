@@ -5,11 +5,11 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["../ProductManagment.Migrator/ProductManagment.Migrator.csproj", "../ProductManagment.Migrator/"]
+COPY ["ProductManagment.Migrator/ProductManagment.Migrator.csproj", "ProductManagment.Migrator/"]
 COPY ["ProductManagment.Api.csproj", "ProductManagment.Api/"]
-RUN dotnet restore "../ProductManagment.Migrator/ProductManagment.Migrator.csproj"
+RUN dotnet restore "ProductManagment.Migrator/ProductManagment.Migrator.csproj"
 COPY . .
-WORKDIR "/src/../ProductManagment.Migrator"
+WORKDIR "/src/ProductManagment.Migrator"
 RUN dotnet build "ProductManagment.Migrator.csproj" -c Release -o /app/build
 
 FROM build AS publish
