@@ -13,7 +13,7 @@ using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
 {
-    [Route("api/category")]
+    [Route("api/categories")]
     [ApiController]
     public class GetAllActiveCategoriesController : ControllerBase
     {
