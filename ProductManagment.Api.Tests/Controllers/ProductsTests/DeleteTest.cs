@@ -42,7 +42,7 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
         }
 
         [Fact]
-        public async Task Return_200_When_Product_Was_Added()
+        public async Task Return_200_When_Product_Was_Deleted()
         {
             //Arrange
             var controller = Create();
