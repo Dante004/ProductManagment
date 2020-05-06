@@ -1,11 +1,9 @@
-﻿using AutoMapper;
-using FizzWare.NBuilder;
+﻿using FizzWare.NBuilder;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using ProductManagment.Api.Controlers.Categories;
 using ProductManagment.Api.Helpers;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -15,11 +13,11 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
 {
     public class PostTest
     {
-        protected Mock<IMediator> Mediator;
-        protected Result<int> OkResult;
-        protected Result<int> ErrorResult;
-        protected int Id;
-        protected InsertCategoryCommand Command;
+        private Mock<IMediator> Mediator;
+        private Result<int> OkResult;
+        private Result<int> ErrorResult;
+        private int Id;
+        private InsertCategoryCommand Command;
 
         protected AddOrUpdateCategoryController Create()
         {

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using FizzWare.NBuilder;
+﻿using FizzWare.NBuilder;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -14,10 +13,10 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
 {
     public class GetTest
     {
-        protected Mock<IMediator> Mediator;
-        protected Result<ProductDto> OkResult;
-        protected Result<ProductDto> ErrorResult;
-        protected ProductDto ProductDto;
+        private Mock<IMediator> Mediator;
+        private Result<ProductDto> OkResult;
+        private Result<ProductDto> ErrorResult;
+        private ProductDto ProductDto;
 
         protected GetProductController Create()
         {

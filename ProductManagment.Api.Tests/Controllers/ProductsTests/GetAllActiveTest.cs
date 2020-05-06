@@ -14,10 +14,10 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
 {
     public class GetAllActiveTest
     {
-        protected Mock<IMediator> Mediator;
-        protected Result<IEnumerable<ProductDto>> OkResult;
-        protected Result<IEnumerable<ProductDto>> ErrorResult;
-        protected IEnumerable<ProductDto> ProductDto;
+        private Mock<IMediator> Mediator;
+        private Result<IEnumerable<ProductDto>> OkResult;
+        private Result<IEnumerable<ProductDto>> ErrorResult;
+        private IEnumerable<ProductDto> ProductDto;
 
         protected GetAllActiveProductsController Create()
         {

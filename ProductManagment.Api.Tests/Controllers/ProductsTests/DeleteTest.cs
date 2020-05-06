@@ -1,11 +1,9 @@
-﻿using AutoMapper;
-using FizzWare.NBuilder;
+﻿using FizzWare.NBuilder;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using ProductManagment.Api.Controlers.Products;
 using ProductManagment.Api.Helpers;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -15,11 +13,11 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
 {
     public class Delete
     {
-        protected Mock<IMediator> Mediator;
-        protected Result<int> OkResult;
-        protected Result<int> ErrorResult;
-        protected int Id;
-        protected DeleteProductCommand Command;
+        private Mock<IMediator> Mediator;
+        private Result<int> OkResult;
+        private Result<int> ErrorResult;
+        private int Id;
+        private DeleteProductCommand Command;
 
         protected DeleteProductController Create()
         {
@@ -35,7 +33,8 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             OkResult = Result.Ok(Id);
             ErrorResult = Result.Error<int>("Error");
 
-            Command = Builder<DeleteProductCommand>.CreateNew().Build();
+            Command = Builder<DeleteProductCommand>.CreateNew()
+                .With(x => x.Id = Id).Build();
 
             Mediator.Setup(m => m.Send(It.IsAny<DeleteProductCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(OkResult);
