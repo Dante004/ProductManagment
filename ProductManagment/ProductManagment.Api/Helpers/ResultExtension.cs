@@ -40,5 +40,16 @@ namespace ProductManagment.Api.Helpers
 
             return new OkObjectResult(result.Value);
         }
+
+        public static IActionResult Process<T>(this PaginationResult<T> result, ModelStateDictionary modelState)
+        {
+            if (!result.Success)
+            {
+                result.AddErrorToModelState(modelState);
+                return new BadRequestObjectResult(modelState);
+            }
+
+            return new OkObjectResult(result);
+        }
     }
 }
