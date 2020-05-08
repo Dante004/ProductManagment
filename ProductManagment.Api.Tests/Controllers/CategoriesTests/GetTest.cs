@@ -13,27 +13,27 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
 {
     public class GetTest
     {
-        private Mock<IMediator> Mediator;
-        private Result<CategoryDto> OkResult;
-        private Result<CategoryDto> ErrorResult;
-        private CategoryDto ProductDto;
+        private Mock<IMediator> mediator;
+        private Result<CategoryDto> okResult;
+        private Result<CategoryDto> errorResult;
+        private CategoryDto productDto;
 
         protected GetCategoryController Create()
         {
-            Mediator = new Mock<IMediator>();
+            mediator = new Mock<IMediator>();
             CorrectFlow();
-            return new GetCategoryController(Mediator.Object);
+            return new GetCategoryController(mediator.Object);
         }
 
         private void CorrectFlow()
         {
-            ProductDto = Builder<CategoryDto>.CreateNew().Build();
+            productDto = Builder<CategoryDto>.CreateNew().Build();
 
-            OkResult = Result.Ok(ProductDto);
-            ErrorResult = Result.Error<CategoryDto>("Error");
+            okResult = Result.Ok(productDto);
+            errorResult = Result.Error<CategoryDto>("Error");
 
-            Mediator.Setup(m => m.Send(It.IsAny<GetCategoryQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(OkResult);
+            mediator.Setup(m => m.Send(It.IsAny<GetCategoryQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(okResult);
         }
 
         [Fact]
@@ -44,9 +44,9 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             //Act
             var result = await controller.Get(10);
             //Assert
-            result.Should().BeOk((object)ProductDto);
+            result.Should().BeOk((object)productDto);
 
-            Mediator.Verify(m => m.Send(It.IsAny<GetCategoryQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<GetCategoryQuery>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -55,14 +55,14 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             //Arrange
             var controller = Create();
 
-            Mediator.Setup(m => m.Send(It.IsAny<GetCategoryQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ErrorResult);
+            mediator.Setup(m => m.Send(It.IsAny<GetCategoryQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(errorResult);
             //Act
             var result = await controller.Get(10);
             //Assert
-            result.Should().BeBadRequest((object)ProductDto);
+            result.Should().BeBadRequest((object)productDto);
 
-            Mediator.Verify(m => m.Send(It.IsAny<GetCategoryQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<GetCategoryQuery>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

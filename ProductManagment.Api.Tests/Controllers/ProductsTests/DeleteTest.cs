@@ -13,31 +13,31 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
 {
     public class Delete
     {
-        private Mock<IMediator> Mediator;
-        private Result<int> OkResult;
-        private Result<int> ErrorResult;
-        private int Id;
-        private DeleteProductCommand Command;
+        private Mock<IMediator> mediator;
+        private Result<int> okResult;
+        private Result<int> errorResult;
+        private int id;
+        private DeleteProductCommand command;
 
         protected DeleteProductController Create()
         {
-            Mediator = new Mock<IMediator>();
+            mediator = new Mock<IMediator>();
             CorrectFlow();
-            return new DeleteProductController(Mediator.Object);
+            return new DeleteProductController(mediator.Object);
         }
 
         private void CorrectFlow()
         {
-            Id = Builder<int>.CreateNew().Build();
+            id = Builder<int>.CreateNew().Build();
 
-            OkResult = Result.Ok(Id);
-            ErrorResult = Result.Error<int>("Error");
+            okResult = Result.Ok(id);
+            errorResult = Result.Error<int>("Error");
 
-            Command = Builder<DeleteProductCommand>.CreateNew()
-                .With(x => x.Id = Id).Build();
+            command = Builder<DeleteProductCommand>.CreateNew()
+                .With(x => x.Id = id).Build();
 
-            Mediator.Setup(m => m.Send(It.IsAny<DeleteProductCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(OkResult);
+            mediator.Setup(m => m.Send(It.IsAny<DeleteProductCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(okResult);
         }
 
         [Fact]
@@ -46,11 +46,11 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             //Arrange
             var controller = Create();
             //Act
-            var result = await controller.Delete(Command);
+            var result = await controller.Delete(command);
             //Assert
-            result.Should().BeOk((object)Id);
+            result.Should().BeOk((object)id);
 
-            Mediator.Verify(m => m.Send(Command, It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(command, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -59,14 +59,14 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             //Arrange
             var controller = Create();
 
-            Mediator.Setup(m => m.Send(It.IsAny<DeleteProductCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ErrorResult);
+            mediator.Setup(m => m.Send(It.IsAny<DeleteProductCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(errorResult);
             //Act
-            var result = await controller.Delete(Command);
+            var result = await controller.Delete(command);
             //Assert
-            result.Should().BeBadRequest((object)Id);
+            result.Should().BeBadRequest((object)id);
 
-            Mediator.Verify(m => m.Send(Command, It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(command, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

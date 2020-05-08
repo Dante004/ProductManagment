@@ -13,30 +13,30 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
 {
     public class PostTest
     {
-        private Mock<IMediator> Mediator;
-        private Result<int> OkResult;
-        private Result<int> ErrorResult;
-        private int Id;
-        private AddOrUpdateCategoryCommand Command;
+        private Mock<IMediator> mediator;
+        private Result<int> okResult;
+        private Result<int> errorResult;
+        private int id;
+        private AddOrUpdateCategoryCommand command;
 
         protected AddOrUpdateCategoryController Create()
         {
-            Mediator = new Mock<IMediator>();
+            mediator = new Mock<IMediator>();
             CorrectFlow();
-            return new AddOrUpdateCategoryController(Mediator.Object);
+            return new AddOrUpdateCategoryController(mediator.Object);
         }
 
         private void CorrectFlow()
         {
-            Id = Builder<int>.CreateNew().Build();
+            id = Builder<int>.CreateNew().Build();
 
-            OkResult = Result.Ok(Id);
-            ErrorResult = Result.Error<int>("Error");
+            okResult = Result.Ok(id);
+            errorResult = Result.Error<int>("Error");
 
-            Command = Builder<AddOrUpdateCategoryCommand>.CreateNew().Build();
+            command = Builder<AddOrUpdateCategoryCommand>.CreateNew().Build();
 
-            Mediator.Setup(m => m.Send(It.IsAny<AddOrUpdateCategoryCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(OkResult);
+            mediator.Setup(m => m.Send(It.IsAny<AddOrUpdateCategoryCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(okResult);
         }
 
         [Fact]
@@ -45,11 +45,11 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             //Arrange
             var controller = Create();
             //Act
-            var result = await controller.Post(Command);
+            var result = await controller.Post(command);
             //Assert
-            result.Should().BeSuccess((object)Id);
+            result.Should().BeSuccess((object)id);
 
-            Mediator.Verify(m => m.Send(Command, It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(command, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -58,14 +58,14 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             //Arrange
             var controller = Create();
 
-            Mediator.Setup(m => m.Send(It.IsAny<AddOrUpdateCategoryCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ErrorResult);
+            mediator.Setup(m => m.Send(It.IsAny<AddOrUpdateCategoryCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(errorResult);
             //Act
-            var result = await controller.Post(Command);
+            var result = await controller.Post(command);
             //Assert
-            result.Should().BeBadRequest((object)Id);
+            result.Should().BeBadRequest((object)id);
 
-            Mediator.Verify(m => m.Send(Command, It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(command, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }
