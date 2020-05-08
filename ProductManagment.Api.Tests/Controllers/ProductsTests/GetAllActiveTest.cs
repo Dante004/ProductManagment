@@ -5,6 +5,7 @@ using Moq;
 using ProductManagment.Api.Controlers.Products;
 using ProductManagment.Api.Helpers;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -14,27 +15,33 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
 {
     public class GetAllActiveTest
     {
-        private Mock<IMediator> Mediator;
-        private Result<IEnumerable<ProductDto>> OkResult;
-        private Result<IEnumerable<ProductDto>> ErrorResult;
-        private IEnumerable<ProductDto> ProductDto;
+        private Mock<IMediator> mediator;
+        private PaginationResult<ProductDto> okResult;
+        private IEnumerable<ProductDto> productDto;
+        private int pageSize;
+        private int pageNumber;
 
         protected GetAllActiveProductsController Create()
         {
-            Mediator = new Mock<IMediator>();
+            mediator = new Mock<IMediator>();
             CorrectFlow();
-            return new GetAllActiveProductsController(Mediator.Object);
+            return new GetAllActiveProductsController(mediator.Object);
         }
 
         private void CorrectFlow()
         {
-            ProductDto = Builder<ProductDto>.CreateListOfSize(10).Build();
+            productDto = Builder<ProductDto>.CreateListOfSize(10).Build();
 
-            OkResult = Result.Ok(ProductDto);
-            ErrorResult = Result.Error<IEnumerable<ProductDto>>("Error");
+            okResult = Builder<PaginationResult<ProductDto>>.CreateNew()
+                .With(p => p.Success = true)
+                .With(p => p.Items = productDto)
+                .With(p => p.Count = productDto.Count())
+                .With(p => p.Page = pageNumber)
+                .With(p => p.Size = pageSize)
+                .Build();
 
-            Mediator.Setup(m => m.Send(It.IsAny<GetAllActiveProductsQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(OkResult);
+            mediator.Setup(m => m.Send(It.IsAny<GetAllActiveProductsQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(okResult);
         }
 
         [Fact]
@@ -43,27 +50,11 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             //Arrange
             var controller = Create();
             //Act
-            var result = await controller.GetAllActive();
+            var result = await controller.GetAllActive(pageNumber, pageSize);
             //Assert
-            result.Should().BeOk((object)ProductDto);
+            result.Should().BeOk((object)productDto);
 
-            Mediator.Verify(m => m.Send(It.IsAny<GetAllActiveProductsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task Return_BadRequest_When_Handler_Return_Error()
-        {
-            //Arrange
-            var controller = Create();
-
-            Mediator.Setup(m => m.Send(It.IsAny<GetAllActiveProductsQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ErrorResult);
-            //Act
-            var result = await controller.GetAllActive();
-            //Assert
-            result.Should().BeBadRequest((object)ProductDto);
-
-            Mediator.Verify(m => m.Send(It.IsAny<GetAllActiveProductsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<GetAllActiveProductsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }
