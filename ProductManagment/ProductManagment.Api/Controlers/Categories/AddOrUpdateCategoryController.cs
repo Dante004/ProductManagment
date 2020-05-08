@@ -22,26 +22,26 @@ namespace ProductManagment.Api.Controlers.Categories
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] AddOrUpdateUpdateCategoryCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Post([FromBody] AddOrUpdateCategoryCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
             return result.Process(ModelState, nameof(Post));
         }
 
         [HttpPut]
-        public async Task<IActionResult> Put(AddOrUpdateUpdateCategoryCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Put(AddOrUpdateCategoryCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
             return result.Process(ModelState);
         }
 
-        public class AddOrUpdateUpdateCategoryCommand : IRequest<Result<int>>
+        public class AddOrUpdateCategoryCommand : IRequest<Result<int>>
         {
             public int Id { get; set; }
             public string Name { get; set; }
         }
 
-        public class AddOrUpdateCategoryCommandHandler : IRequestHandler<AddOrUpdateUpdateCategoryCommand, Result<int>>
+        public class AddOrUpdateCategoryCommandHandler : IRequestHandler<AddOrUpdateCategoryCommand, Result<int>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper;
@@ -56,7 +56,7 @@ namespace ProductManagment.Api.Controlers.Categories
                 _validator = validator;
             }
 
-            public async Task<Result<int>> Handle(AddOrUpdateUpdateCategoryCommand request, CancellationToken cancellationToken)
+            public async Task<Result<int>> Handle(AddOrUpdateCategoryCommand request, CancellationToken cancellationToken)
             {
                 if(request.Id == 0)
                 {
@@ -103,7 +103,7 @@ namespace ProductManagment.Api.Controlers.Categories
         {
             public CategoryProfile()
             {
-                CreateMap<Category, AddOrUpdateUpdateCategoryCommand>()
+                CreateMap<Category, AddOrUpdateCategoryCommand>()
                     .ReverseMap();
             }
         }
