@@ -10,7 +10,7 @@ using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
 {
-    [Route("api/category")]
+    [Route("api/categories")]
     [ApiController]
     public class AddOrUpdateCategoryController : ControllerBase
     {
@@ -22,31 +22,32 @@ namespace ProductManagment.Api.Controlers.Categories
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] InsertCategoryCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Post([FromBody] AddOrUpdateUpdateCategoryCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
             return result.Process(ModelState, nameof(Post));
         }
 
         [HttpPut]
-        public async Task<IActionResult> Put(UpdateCategoryCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Put(AddOrUpdateUpdateCategoryCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
             return result.Process(ModelState);
         }
 
-        public class InsertCategoryCommand : IRequest<Result<int>>
+        public class AddOrUpdateUpdateCategoryCommand : IRequest<Result<int>>
         {
+            public int Id { get; set; }
             public string Name { get; set; }
         }
 
-        public class InsertCategoryCommandHandler : IRequestHandler<InsertCategoryCommand, Result<int>>
+        public class AddOrUpdateCategoryCommandHandler : IRequestHandler<AddOrUpdateUpdateCategoryCommand, Result<int>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper;
             private readonly IValidator<Category> _validator;
 
-            public InsertCategoryCommandHandler(DataContext dataContext,
+            public AddOrUpdateCategoryCommandHandler(DataContext dataContext,
                 IMapper mapper,
                 IValidator<Category> validator)
             {
@@ -55,63 +56,46 @@ namespace ProductManagment.Api.Controlers.Categories
                 _validator = validator;
             }
 
-            public async Task<Result<int>> Handle(InsertCategoryCommand request, CancellationToken cancellationToken)
+            public async Task<Result<int>> Handle(AddOrUpdateUpdateCategoryCommand request, CancellationToken cancellationToken)
             {
-                var category = _mapper.Map<Category>(request);
-
-                var result = await _validator.ValidateAsync(category, cancellationToken);
-
-                if(!result.IsValid)
+                if(request.Id == 0)
                 {
-                    return Result.Error<int>(result.Errors);
+                    var category = _mapper.Map<Category>(request);
+
+                    var result = await _validator.ValidateAsync(category, cancellationToken);
+
+                    if (!result.IsValid)
+                    {
+                        return Result.Error<int>(result.Errors);
+                    }
+
+                    await _dataContext.Categories.AddAsync(category, cancellationToken);
+                    await _dataContext.SaveChangesAsync(cancellationToken);
+
+                    return Result.Ok(category.Id);
                 }
-
-                await _dataContext.Categories.AddAsync(category, cancellationToken);
-                await _dataContext.SaveChangesAsync(cancellationToken);
-
-                return Result.Ok(category.Id);
-            }
-        }
-
-        public class UpdateCategoryCommand : IRequest<Result<int>>
-        {
-            public int Id { get; set; }
-            public string Name { get; set; }
-        }
-
-        public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result<int>>
-        {
-            private readonly DataContext _dataContext;
-            private readonly IValidator<Category> _validator;
-
-            public UpdateCategoryCommandHandler(DataContext dataContext,
-                IValidator<Category> validator)
-            {
-                _dataContext = dataContext;
-                _validator = validator;
-            }
-
-            public async Task<Result<int>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
-            {
-                var category = new Category
+                else
                 {
-                    Id = request.Id
-                };
+                    var category = new Category
+                    {
+                        Id = request.Id
+                    };
 
-                _dataContext.Categories.Attach(category);
+                    _dataContext.Categories.Attach(category);
 
-                category.Name = request.Name;
+                    category.Name = request.Name;
 
-                var result = await _validator.ValidateAsync(category, cancellationToken);
+                    var result = await _validator.ValidateAsync(category, cancellationToken);
 
-                if (!result.IsValid)
-                {
-                    return Result.Error<int>(result.Errors);
+                    if (!result.IsValid)
+                    {
+                        return Result.Error<int>(result.Errors);
+                    }
+
+                    await _dataContext.SaveChangesAsync(cancellationToken);
+
+                    return Result.Ok(request.Id);
                 }
-
-                await _dataContext.SaveChangesAsync(cancellationToken);
-
-                return Result.Ok(request.Id);
             }
         }
 
@@ -119,7 +103,7 @@ namespace ProductManagment.Api.Controlers.Categories
         {
             public CategoryProfile()
             {
-                CreateMap<Category, InsertCategoryCommand>()
+                CreateMap<Category, AddOrUpdateUpdateCategoryCommand>()
                     .ReverseMap();
             }
         }

@@ -10,11 +10,15 @@ services:
     depends_on:
       - db
       - migrator
+    networks:
+     - local
   db:
     image: "mcr.microsoft.com/mssql/server"
     environment:
         SA_PASSWORD: "Legoswtcs1!"
         ACCEPT_EULA: "Y"
+    networks:
+     - local
   migrator:
     image: ${DOCKER_REGISTRY-}productmanagmentmigrator
     container_name: migrator
@@ -25,3 +29,8 @@ services:
       - db
     environment:
         DbConnection: "Server=db;Database=ProductManagment;User=sa;Password=Legoswtcs1!;"
+    networks:
+     - local
+networks:
+  local:
+    driver: bridge

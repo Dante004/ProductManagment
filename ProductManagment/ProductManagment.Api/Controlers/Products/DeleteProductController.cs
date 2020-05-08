@@ -9,7 +9,7 @@ using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Products
 {
-    [Route("api/product")]
+    [Route("api/products")]
     [ApiController]
     public class DeleteProductController : ControllerBase
     {
