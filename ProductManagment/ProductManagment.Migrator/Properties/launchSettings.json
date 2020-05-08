@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "ProductManagment.Migrator": {
+      "commandName": "Project",
+      "commandLineArgs": "-c Server=db;Database=ProductManagment;User=sa;Password=Legoswtcs1!;"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "environmentVariables": {
+        "DbConnection": "Server=db;Database=ProductManagment;User=sa;Password=Legoswtcs1!;"
+      }
+    }
+  }
+}

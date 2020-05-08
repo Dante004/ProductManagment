@@ -1,0 +1,36 @@
+version: '3.4'
+
+services:
+  productmanagment.api:
+    image: ${DOCKER_REGISTRY-}productmanagmentapi
+    container_name: web
+    build:
+      context: .
+      dockerfile: ProductManagment.Api/Dockerfile
+    depends_on:
+      - db
+      - migrator
+    networks:
+     - local
+  db:
+    image: "mcr.microsoft.com/mssql/server"
+    environment:
+        SA_PASSWORD: "Legoswtcs1!"
+        ACCEPT_EULA: "Y"
+    networks:
+     - local
+  migrator:
+    image: ${DOCKER_REGISTRY-}productmanagmentmigrator
+    container_name: migrator
+    build:
+      context: .
+      dockerfile: ProductManagment.Migrator/Dockerfile
+    depends_on:
+      - db
+    environment:
+        DbConnection: "Server=db;Database=ProductManagment;User=sa;Password=Legoswtcs1!;"
+    networks:
+     - local
+networks:
+  local:
+    driver: bridge
