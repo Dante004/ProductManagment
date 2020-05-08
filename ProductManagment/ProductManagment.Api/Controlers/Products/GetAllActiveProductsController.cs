@@ -1,18 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
 using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Products
 {
-    [Route("api/product")]
+    [Route("api/products")]
     [ApiController]
     public class GetAllActiveProductsController : ControllerBase
     {
@@ -23,10 +21,10 @@ namespace ProductManagment.Api.Controlers.Products
             _mediator = mediator;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken = default)
+        [HttpGet("{pageNumber}/{pageSize}")]
+        public async Task<IActionResult> GetAllActive(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
         {
-            var result = await _mediator.Send(new GetAllActiveProductsQuery(), cancellationToken);
+            var result = await _mediator.Send(new GetAllActiveProductsQuery { Paging = new Paging { PageNumber = pageNumber, PageSize = pageSize } }, cancellationToken);
             return result.Process(ModelState);
         }
 
@@ -39,12 +37,12 @@ namespace ProductManagment.Api.Controlers.Products
             public int CategoryId { get; set; }
         }
 
-        public class GetAllActiveProductsQuery : IRequest<Result<IEnumerable<ProductDto>>>
+        public class GetAllActiveProductsQuery : IRequest<PaginationResult<ProductDto>>
         {
-
+            public Paging Paging { get; set; }
         }
 
-        public class GetAllActiveProductsQueryHandler : IRequestHandler<GetAllActiveProductsQuery, Result<IEnumerable<ProductDto>>>
+        public class GetAllActiveProductsQueryHandler : IRequestHandler<GetAllActiveProductsQuery, PaginationResult<ProductDto>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper;
@@ -56,13 +54,9 @@ namespace ProductManagment.Api.Controlers.Products
                 _mapper = mapper;
             }
 
-            public async Task<Result<IEnumerable<ProductDto>>> Handle(GetAllActiveProductsQuery request, CancellationToken cancellationToken)
+            public async Task<PaginationResult<ProductDto>> Handle(GetAllActiveProductsQuery request, CancellationToken cancellationToken)
             {
-                var products =  _dataContext.Products.Where(p => p.IsActive);
-
-                var productDtos = await _mapper.ProjectTo<ProductDto>(products).ToListAsync(cancellationToken);
-
-                return Result.Ok(productDtos.AsEnumerable());
+                return await _dataContext.Products.Where(p => p.IsActive).ToPagedListAsync<Product, ProductDto>(request.Paging, _mapper, cancellationToken);
             }
         }
 

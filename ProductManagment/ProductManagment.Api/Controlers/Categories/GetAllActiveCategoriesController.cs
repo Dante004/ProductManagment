@@ -1,18 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
 using ProductManagment.Api.Helpers;
 using ProductManagment.Api.Models;
 
 namespace ProductManagment.Api.Controlers.Categories
 {
-    [Route("api/category")]
+    [Route("api/categories")]
     [ApiController]
     public class GetAllActiveCategoriesController : ControllerBase
     {
@@ -23,10 +21,10 @@ namespace ProductManagment.Api.Controlers.Categories
             _mediator = mediator;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllActive(CancellationToken cancellationToken = default)
+        [HttpGet("{pageNumber}/{pageSize}")]
+        public async Task<IActionResult> GetAllActive(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
         {
-            var result = await _mediator.Send(new GetAllActiveCategoriesQuery(), cancellationToken);
+            var result = await _mediator.Send(new GetAllActiveCategoriesQuery { Paging = new Paging { PageNumber = pageNumber, PageSize = pageSize } }, cancellationToken);
             return result.Process(ModelState);
         }
 
@@ -36,12 +34,12 @@ namespace ProductManagment.Api.Controlers.Categories
             public string Name { get; set; }
         }
 
-        public class GetAllActiveCategoriesQuery : IRequest<Result<IEnumerable<CategoryDto>>>
+        public class GetAllActiveCategoriesQuery : IRequest<PaginationResult<CategoryDto>>
         {
-
+            public Paging Paging { get; set; }
         }
 
-        public class GetAllActiveCategoriesQueryHandler : IRequestHandler<GetAllActiveCategoriesQuery, Result<IEnumerable<CategoryDto>>>
+        public class GetAllActiveCategoriesQueryHandler : IRequestHandler<GetAllActiveCategoriesQuery, PaginationResult<CategoryDto>>
         {
             private readonly DataContext _dataContext;
             private readonly IMapper _mapper;
@@ -53,13 +51,9 @@ namespace ProductManagment.Api.Controlers.Categories
                 _mapper = mapper;
             }
 
-            public async Task<Result<IEnumerable<CategoryDto>>> Handle(GetAllActiveCategoriesQuery request, CancellationToken cancellationToken)
+            public async Task<PaginationResult<CategoryDto>> Handle(GetAllActiveCategoriesQuery request, CancellationToken cancellationToken)
             {
-                var categories =  _dataContext.Categories.Where(p => p.IsActive);
-
-                var categoryDtos = await _mapper.ProjectTo<CategoryDto>(categories).ToListAsync(cancellationToken);
-
-                return Result.Ok(categoryDtos.AsEnumerable());
+                return await _dataContext.Categories.Where(c => c.IsActive).ToPagedListAsync<Category, CategoryDto>(request.Paging, _mapper, cancellationToken);
             }
         }
 
@@ -71,5 +65,7 @@ namespace ProductManagment.Api.Controlers.Categories
                     .ReverseMap();
             }
         }
+
+        
     }
 }

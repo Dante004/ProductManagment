@@ -13,27 +13,27 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
 {
     public class GetTest
     {
-        private Mock<IMediator> Mediator;
-        private Result<ProductDto> OkResult;
-        private Result<ProductDto> ErrorResult;
-        private ProductDto ProductDto;
+        private Mock<IMediator> mediator;
+        private Result<ProductDto> okResult;
+        private Result<ProductDto> errorResult;
+        private ProductDto productDto;
 
         protected GetProductController Create()
         {
-            Mediator = new Mock<IMediator>();
+            mediator = new Mock<IMediator>();
             CorrectFlow();
-            return new GetProductController(Mediator.Object);
+            return new GetProductController(mediator.Object);
         }
 
         private void CorrectFlow()
         {
-            ProductDto = Builder<ProductDto>.CreateNew().Build();
+            productDto = Builder<ProductDto>.CreateNew().Build();
 
-            OkResult = Result.Ok(ProductDto);
-            ErrorResult = Result.Error<ProductDto>("Error");
+            okResult = Result.Ok(productDto);
+            errorResult = Result.Error<ProductDto>("Error");
 
-            Mediator.Setup(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(OkResult);
+            mediator.Setup(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(okResult);
         }
 
         [Fact]
@@ -44,9 +44,9 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             //Act
             var result = await controller.Get(10);
             //Assert
-            result.Should().BeOk((object)ProductDto);
+            result.Should().BeOk((object)productDto);
 
-            Mediator.Verify(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -55,14 +55,14 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             //Arrange
             var controller = Create();
 
-            Mediator.Setup(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ErrorResult);
+            mediator.Setup(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(errorResult);
             //Act
             var result = await controller.Get(10);
             //Assert
-            result.Should().BeBadRequest((object)ProductDto);
+            result.Should().BeBadRequest((object)productDto);
 
-            Mediator.Verify(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<GetProductQuery>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

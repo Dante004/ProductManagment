@@ -5,6 +5,7 @@ using Moq;
 using ProductManagment.Api.Controlers.Categories;
 using ProductManagment.Api.Helpers;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -14,27 +15,32 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
 {
     public class GetAllActiveTest
     {
-        private Mock<IMediator> Mediator;
-        private Result<IEnumerable<CategoryDto>> OkResult;
-        private Result<IEnumerable<CategoryDto>> ErrorResult;
-        private IEnumerable<CategoryDto> ProductDto;
+        private Mock<IMediator> mediator;
+        private PaginationResult<CategoryDto> okResult;
+        private IEnumerable<CategoryDto> categoryDto;
+        private int pageSize;
+        private int pageNumber;
 
         protected GetAllActiveCategoriesController Create()
         {
-            Mediator = new Mock<IMediator>();
+            mediator = new Mock<IMediator>();
             CorrectFlow();
-            return new GetAllActiveCategoriesController(Mediator.Object);
+            return new GetAllActiveCategoriesController(mediator.Object);
         }
 
         private void CorrectFlow()
         {
-            ProductDto = Builder<CategoryDto>.CreateListOfSize(10).Build();
+            categoryDto = Builder<CategoryDto>.CreateListOfSize(10).Build();
 
-            OkResult = Result.Ok(ProductDto);
-            ErrorResult = Result.Error<IEnumerable<CategoryDto>>("Error");
+            okResult = Builder<PaginationResult<CategoryDto>>.CreateNew()
+                .With(p => p.Success = true)
+                .With(p => p.Items = categoryDto)
+                .With(p => p.Count = categoryDto.Count())
+                .With(p => p.Size = pageSize)
+                .Build();
 
-            Mediator.Setup(m => m.Send(It.IsAny<GetAllActiveCategoriesQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(OkResult);
+            mediator.Setup(m => m.Send(It.IsAny<GetAllActiveCategoriesQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(okResult);
         }
 
         [Fact]
@@ -43,27 +49,11 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             //Arrange
             var controller = Create();
             //Act
-            var result = await controller.GetAllActive();
+            var result = await controller.GetAllActive(pageNumber, pageSize);
             //Assert
-            result.Should().BeOk((object)ProductDto);
+            result.Should().BeOk(okResult);
 
-            Mediator.Verify(m => m.Send(It.IsAny<GetAllActiveCategoriesQuery>(), It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task Return_BadRequest_When_Handler_Return_Error()
-        {
-            //Arrange
-            var controller = Create();
-
-            Mediator.Setup(m => m.Send(It.IsAny<GetAllActiveCategoriesQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ErrorResult);
-            //Act
-            var result = await controller.GetAllActive();
-            //Assert
-            result.Should().BeBadRequest((object)ProductDto);
-
-            Mediator.Verify(m => m.Send(It.IsAny<GetAllActiveCategoriesQuery>(), It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<GetAllActiveCategoriesQuery>(), It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

@@ -11,7 +11,7 @@ using ProductManagment.Api.Properties;
 
 namespace ProductManagment.Api.Controlers.Products
 {
-    [Route("api/product")]
+    [Route("api/products")]
     [ApiController]
     public class GetProductController : ControllerBase
     {

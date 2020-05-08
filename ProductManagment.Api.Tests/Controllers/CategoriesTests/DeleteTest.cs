@@ -13,31 +13,31 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
 {
     public class Delete
     {
-        private Mock<IMediator> Mediator;
-        private Result<int> OkResult;
-        private Result<int> ErrorResult;
+        private Mock<IMediator> mediator;
+        private Result<int> okResult;
+        private Result<int> errorResult;
         private int Id;
         private DeleteCategoryCommand Command;
 
         protected DeleteCategoryController Create()
         {
-            Mediator = new Mock<IMediator>();
+            mediator = new Mock<IMediator>();
             CorrectFlow();
-            return new DeleteCategoryController(Mediator.Object);
+            return new DeleteCategoryController(mediator.Object);
         }
 
         private void CorrectFlow()
         {
             Id = Builder<int>.CreateNew().Build();
 
-            OkResult = Result.Ok(Id);
-            ErrorResult = Result.Error<int>("Error");
+            okResult = Result.Ok(Id);
+            errorResult = Result.Error<int>("Error");
 
             Command = Builder<DeleteCategoryCommand>.CreateNew()
                 .With(x => x.Id = Id).Build();
 
-            Mediator.Setup(m => m.Send(It.IsAny<DeleteCategoryCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(OkResult);
+            mediator.Setup(m => m.Send(It.IsAny<DeleteCategoryCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(okResult);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             //Assert
             result.Should().BeOk((object)Id);
 
-            Mediator.Verify(m => m.Send(Command, It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(Command, It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -59,14 +59,14 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             //Arrange
             var controller = Create();
 
-            Mediator.Setup(m => m.Send(It.IsAny<DeleteCategoryCommand>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ErrorResult);
+            mediator.Setup(m => m.Send(It.IsAny<DeleteCategoryCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(errorResult);
             //Act
             var result = await controller.Delete(Command);
             //Assert
             result.Should().BeBadRequest((object)Id);
 
-            Mediator.Verify(m => m.Send(Command, It.IsAny<CancellationToken>()), Times.Once);
+            mediator.Verify(m => m.Send(Command, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

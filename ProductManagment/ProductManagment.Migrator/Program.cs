@@ -1,5 +1,4 @@
-﻿using CommandLine;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ProductManagment.Api.DataAccess;
 using System;
 
