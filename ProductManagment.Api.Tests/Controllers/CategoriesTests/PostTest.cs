@@ -17,7 +17,7 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
         private Result<int> OkResult;
         private Result<int> ErrorResult;
         private int Id;
-        private InsertCategoryCommand Command;
+        private AddOrUpdateCategoryCommand Command;
 
         protected AddOrUpdateCategoryController Create()
         {
@@ -33,9 +33,9 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             OkResult = Result.Ok(Id);
             ErrorResult = Result.Error<int>("Error");
 
-            Command = Builder<InsertCategoryCommand>.CreateNew().Build();
+            Command = Builder<AddOrUpdateCategoryCommand>.CreateNew().Build();
 
-            Mediator.Setup(m => m.Send(It.IsAny<InsertCategoryCommand>(), It.IsAny<CancellationToken>()))
+            Mediator.Setup(m => m.Send(It.IsAny<AddOrUpdateCategoryCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(OkResult);
         }
 
@@ -58,7 +58,7 @@ namespace ProductManagment.Api.Tests.Controllers.CategoriesTests
             //Arrange
             var controller = Create();
 
-            Mediator.Setup(m => m.Send(It.IsAny<InsertCategoryCommand>(), It.IsAny<CancellationToken>()))
+            Mediator.Setup(m => m.Send(It.IsAny<AddOrUpdateCategoryCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ErrorResult);
             //Act
             var result = await controller.Post(Command);

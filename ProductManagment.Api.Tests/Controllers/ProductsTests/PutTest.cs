@@ -17,7 +17,7 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
         private Result<int> OkResult;
         private Result<int> ErrorResult;
         private int Id;
-        private UpdateProductCommand Command;
+        private AddOrUpdateProductCommand Command;
 
         protected AddOrUpdateProductController Create()
         {
@@ -33,10 +33,10 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             OkResult = Result.Ok(Id);
             ErrorResult = Result.Error<int>("Error");
 
-            Command = Builder<UpdateProductCommand>.CreateNew()
+            Command = Builder<AddOrUpdateProductCommand>.CreateNew()
                 .With(u => u.Id = 1).Build();
 
-            Mediator.Setup(m => m.Send(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
+            Mediator.Setup(m => m.Send(It.IsAny<AddOrUpdateProductCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(OkResult);
         }
 
@@ -59,7 +59,7 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             //Arrange
             var controller = Create();
 
-            Mediator.Setup(m => m.Send(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
+            Mediator.Setup(m => m.Send(It.IsAny<AddOrUpdateProductCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(ErrorResult);
             //Act
             var result = await controller.Put(Command);
