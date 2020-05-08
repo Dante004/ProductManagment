@@ -22,61 +22,20 @@ namespace ProductManagment.Api.Controlers.Products
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] InsertProductCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Post([FromBody] AddOrUpdateProductCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
             return result.Process(ModelState, nameof(Post));
         }
 
         [HttpPut]
-        public async Task<IActionResult> Put(UpdateProductCommand command, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> Put([FromBody] AddOrUpdateProductCommand command, CancellationToken cancellationToken = default)
         {
             var result = await _mediator.Send(command, cancellationToken);
             return result.Process(ModelState);
         }
 
-        public class InsertProductCommand : IRequest<Result<int>>
-        {
-            public string Name { get; set; }
-            public string Description { get; set; }
-            public decimal Price { get; set; }
-            public int CategoryId { get; set; }
-        }
-
-        public class InsertProductCommandHandler : IRequestHandler<InsertProductCommand, Result<int>>
-        {
-            private readonly DataContext _dataContext;
-            private readonly IMapper _mapper;
-            private readonly IValidator<Product> _validator;
-
-            public InsertProductCommandHandler(DataContext dataContext,
-                IMapper mapper,
-                IValidator<Product> validator)
-            {
-                _dataContext = dataContext;
-                _mapper = mapper;
-                _validator = validator;
-            }
-
-            public async Task<Result<int>> Handle(InsertProductCommand request, CancellationToken cancellationToken)
-            {
-                var product = _mapper.Map<Product>(request);
-
-                var result = _validator.Validate(product);
-
-                if(!result.IsValid)
-                {
-                    return Result.Error<int>(result.Errors);
-                }
-
-                await _dataContext.Products.AddAsync(product, cancellationToken);
-                await _dataContext.SaveChangesAsync(cancellationToken);
-
-                return Result.Ok(product.Id);
-            }
-        }
-
-        public class UpdateProductCommand : IRequest<Result<int>>
+        public class AddOrUpdateProductCommand : IRequest<Result<int>>
         {
             public int Id { get; set; }
             public string Name { get; set; }
@@ -85,42 +44,65 @@ namespace ProductManagment.Api.Controlers.Products
             public int CategoryId { get; set; }
         }
 
-        public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<int>>
+        public class AddOrUpdateProductCommandHandler : IRequestHandler<AddOrUpdateProductCommand, Result<int>>
         {
             private readonly DataContext _dataContext;
+            private readonly IMapper _mapper;
             private readonly IValidator<Product> _validator;
 
-            public UpdateProductCommandHandler(DataContext dataContext,
+            public AddOrUpdateProductCommandHandler(DataContext dataContext,
+                IMapper mapper,
                 IValidator<Product> validator)
             {
                 _dataContext = dataContext;
+                _mapper = mapper;
                 _validator = validator;
             }
 
-            public async Task<Result<int>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+            public async Task<Result<int>> Handle(AddOrUpdateProductCommand request, CancellationToken cancellationToken)
             {
-                var product = new Product
+                if(request.Id == 0)
                 {
-                    Id = request.Id
-                };
+                    var product = _mapper.Map<Product>(request);
 
-                _dataContext.Products.Attach(product);
+                    var result = _validator.Validate(product);
 
-                product.Name = request.Name;
-                product.Description = request.Description;
-                product.CategoryId = request.CategoryId;
-                product.Price = request.Price;
+                    if (!result.IsValid)
+                    {
+                        return Result.Error<int>(result.Errors);
+                    }
 
-                var result = await _validator.ValidateAsync(product, cancellationToken);
+                    await _dataContext.Products.AddAsync(product, cancellationToken);
+                    await _dataContext.SaveChangesAsync(cancellationToken);
 
-                if (!result.IsValid)
+                    return Result.Ok(product.Id);
+                }
+                else
                 {
-                    return Result.Error<int>(result.Errors);
+                    var product = new Product
+                    {
+                        Id = request.Id
+                    };
+
+                    _dataContext.Products.Attach(product);
+
+                    product.Name = request.Name;
+                    product.Description = request.Description;
+                    product.CategoryId = request.CategoryId;
+                    product.Price = request.Price;
+
+                    var result = await _validator.ValidateAsync(product, cancellationToken);
+
+                    if (!result.IsValid)
+                    {
+                        return Result.Error<int>(result.Errors);
+                    }
+
+                    await _dataContext.SaveChangesAsync(cancellationToken);
+
+                    return Result.Ok(request.Id);
                 }
 
-                await _dataContext.SaveChangesAsync(cancellationToken);
-
-                return Result.Ok(request.Id);
             }
         }
 
@@ -128,7 +110,7 @@ namespace ProductManagment.Api.Controlers.Products
         {
             public ProductProfile()
             {
-                CreateMap<Product, InsertProductCommand>()
+                CreateMap<Product, AddOrUpdateProductCommand>()
                     .ReverseMap();
             }
         }
