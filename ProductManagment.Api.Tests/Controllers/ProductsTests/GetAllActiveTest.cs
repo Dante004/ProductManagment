@@ -52,7 +52,7 @@ namespace ProductManagment.Api.Tests.Controllers.ProductsTests
             //Act
             var result = await controller.GetAllActive(pageNumber, pageSize);
             //Assert
-            result.Should().BeOk((object)productDto);
+            result.Should().BeOk(okResult);
 
             mediator.Verify(m => m.Send(It.IsAny<GetAllActiveProductsQuery>(), It.IsAny<CancellationToken>()), Times.Once);
         }
