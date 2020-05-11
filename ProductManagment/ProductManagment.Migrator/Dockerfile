@@ -6,7 +6,7 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS build
 WORKDIR /src
 COPY ["ProductManagment.Migrator/ProductManagment.Migrator.csproj", "ProductManagment.Migrator/"]
-COPY ["ProductManagment.Api.csproj", "ProductManagment.Api/"]
+COPY ["ProductManagment.Api/ProductManagment.Api.csproj", "ProductManagment.Api/"]
 RUN dotnet restore "ProductManagment.Migrator/ProductManagment.Migrator.csproj"
 COPY . .
 WORKDIR "/src/ProductManagment.Migrator"
